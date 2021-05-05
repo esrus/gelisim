@@ -1,0 +1,82 @@
+#girişimizi tanımla
+
+X2 = sm.add_constant(X)
+
+# Bir OLS modeli oluşturun.
+model = sm.OLS(Y, X2)
+
+
+# verilere sığdır
+est = model.fit()
+
+# bazı güven aralıkları oluşturun, varsayılan olarak% 95.
+est.conf_int()
+
+# p değerlerini tahmin edin.
+est.pvalues
+
+# ortalama hata karesini hesaplayın.
+model_mse = mean_squared_error(y_test, y_predict)
+
+# ortalama mutlak hatayı hesaplayın.
+model_mae = mean_absolute_error(y_test, y_predict)
+
+# kök ortalama kare hatasını hesaplayın
+model_rmse =  math.sqrt(model_mse)
+
+# çıktıyı göster
+print("MSE {:.3}".format(model_mse))
+print("MAE {:.3}".format(model_mae))
+print("RMSE {:.3}".format(model_rmse))
+
+
+#R-kare
+model_r2 = r2_score(y_test, y_predict)
+print("R2: {:.2}".format(model_r2))
+
+# bir özet yazdırın
+print(est.summary())
+
+
+# Kalıntıları alın ve ardından hist () yöntemini çağırın
+(y_test - y_predict).hist(grid = False, color = 'royalblue')
+plt.title("Model Residuals")
+plt.show()
+
+# Çizim çıktıları
+plt.scatter(X_test, y_test,  color='gainsboro', label = 'Price')
+plt.plot(X_test, y_predict, color='royalblue', linewidth = 3, linestyle= '-',label ='Regression Line')
+
+plt.title("Linear Regression Exxon Mobile Vs. Oil")
+plt.xlabel("Oil")
+plt.ylabel("Exxon Mobile")
+plt.legend()
+plt.show()
+
+#Katsayılar
+print('Oil coefficient:' + '\033[1m' + '{:.2}''\033[0m'.format(regression_model.coef_[0][0]))
+
+# Ortalama kare hatası
+print('Mean squared error: ' + '\033[1m' + '{:.4}''\033[0m'.format(model_mse))
+
+# Ortalama kare hatası
+print('Root Mean squared error: ' + '\033[1m' + '{:.4}''\033[0m'.format(math.sqrt(model_mse)))
+
+# Açıklanmış varyans puanı: 1 mükemmel tahmindir
+print('R2 score: '+ '\033[1m' + '{:.2}''\033[0m'.format(r2_score(y_test,y_predict)))
+
+
+import pickle
+
+
+with open('my_linear_regression.sav','wb') as f:
+     pickle.dump(regression_model,f)
+
+# tekrar yükleyin.
+with open('my_linear_regression.sav', 'rb') as pickle_file:
+     regression_model_2 = pickle.load(pickle_file)
+
+# yeni bir tahmin yapın.
+regression_model_2.predict([[67.33]])
+
+
