@@ -1,0 +1,148 @@
+import pandas as pd
+import matplotlib.pyplot as plt
+import numpy as np
+import statsmodels.api as sm
+import math
+from sklearn.model_selection import train_test_split
+
+from sklearn.linear_model import LinearRegression
+
+from sklearn.metrics import mean_squared_error,r2_score,mean_absolute_error
+
+from scipy import stats
+from scipy.stats import kurtosis, skew
+
+#verileri yükle
+path =r"C:\Users\esrus\Desktop\oil_exxon.xlsx"
+
+price_data = pd.read_excel(path)
+
+# dizini tarih sütununa eşit olarak ayarlayın ve 
+#ardından eski tarih sütununu bırakın
+price_data.index = pd.to_datetime(price_data['date'])
+price_data = price_data.drop(['date'], axis = 1)
+
+# ilk beş satırı yazdır
+price_data.head()
+
+# Veri türlerini kontrol edin, 
+# bu durumda her şey yolunda görünüyor, 
+# herhangi bir değişiklik yapılmasına gerek yoktur.
+price_data.dtypes
+
+# yeni adı tanımlayın.
+new_column_names = {'exon_price':'exxon_price'}
+
+# sütunu yeniden adlandırın
+price_data = price_data.rename(columns = new_column_names)
+price_data.head()
+
+# eksik değerleri kontrol edin
+display(price_data.isna().any())
+
+# eksik değerleri bırakın
+price_data = price_data.dropna()
+
+# hepsinin kaldırıldığından emin olmak için kontrol edelim.
+price_data.isna().any()
+
+
+# x & y verilerini tanımlayın.
+x = price_data['exxon_price']
+y = price_data['oil_price']
+
+# dağılım grafiğini oluşturun.
+plt.plot(x, y, 'o', color ='cadetblue', label = 'Daily Price')
+
+# biçimlendirildiğinden emin olun.
+plt.title("Exxon Vs. Oil")
+plt.xlabel("Exxon Mobile")
+plt.ylabel("Oil")
+plt.legend()
+
+plt.show()
+
+#korelasyonu ölçelim
+price_data.corr()
+
+# istatistiksel bir özete bir göz atalım.
+price_data.describe()
+
+
+# Aykırı Değerleri ve Çarpıklığı Kontrol Etme
+price_data.hist(grid = False, color = 'cadetblue')
+
+# fisher yöntemini kullanarak fazla basıklığı hesaplar. 
+#Alternatif, düzenli basıklığı hesaplayan Pearson'dur.
+exxon_kurtosis = kurtosis(price_data['exxon_price'], fisher = True)
+oil_kurtosis = kurtosis(price_data['oil_price'], fisher = True)
+
+# çarpıklığı hesapla
+exxon_skew = skew(price_data['exxon_price'])
+oil_skew = skew(price_data['oil_price'])
+
+display("Exxon Excess Kurtosis: {:.2}".format(exxon_kurtosis))
+#bu iyi görünüyor  
+
+display("Oil Excess Kurtosis: {:.2}".format(oil_kurtosis))      
+#bu iyi görünüyor
+
+display("Exxon Skew: {:.2}".format(exxon_skew)) 
+ #orta derecede çarpık        
+
+display("Oil Skew: {:.2}".format(oil_skew))      
+#orta derecede çarpık biraz yüksek ama kabul edeceğiz.
+
+#basıklık testi yapmak
+display('Exxon')
+display(stats.kurtosistest(price_data['exxon_price']))
+
+
+display('Oil')
+display(stats.kurtosistest(price_data['oil_price']))
+
+
+# çarpıklık testi yapmak
+display('Exxon')
+display(stats.skewtest(price_data['exxon_price']))
+display('Oil')
+display(stats.skewtest(price_data['oil_price']))
+
+
+
+
+#girdi değişkenimizi (X) ve
+#çıktı değişkenimizi tanımlayın.
+Y = price_data.drop('oil_price', axis = 1)
+X = price_data[['oil_price']]
+
+
+# X ve y'yi X'e bölün
+X_train, X_test, y_train, y_test = train_test_split(X, Y, test_size=0.30, random_state=1)
+
+
+#Modeli Oluşturun ve Uydurun
+regression_model = LinearRegression()
+
+# X_train & y_train veri kümesini geçirin.
+regression_model.fit(X_train, y_train)
+
+
+# Modelimizin katsayısını ve kesişme noktasını alalım.
+intercept = regression_model.intercept_[0]
+coefficient = regression_model.coef_[0][0]
+
+print("The Coefficient for our model is {:.2}".format(coefficient))
+print("The intercept for our model is {:.4}".format(intercept))
+
+
+#Tek Bir Tahmin Alma
+prediction = regression_model.predict([[67.33]])
+predicted_value = prediction[0][0]
+print("The predicted value is {:.4}".format(predicted_value))
+
+
+# Birden fazla tahmin alın.
+y_predict = regression_model.predict(X_test)
+# İlk 5 tahmini göster
+y_predict[:5]
